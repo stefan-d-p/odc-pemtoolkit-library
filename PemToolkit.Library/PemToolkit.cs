@@ -12,17 +12,18 @@ public class PemToolkit : IPemToolkit
     {
         return message;
     }
-    
+
     /// <summary>
     /// Convert an X.509 certificate PEM (leaf) to a serialized JWK JSON string (includes x5c).
     /// </summary>
     /// <param name="pem">PEM source</param>
     /// <param name="indented">Return serialized Jwk indented. Defaults to true</param>
+    /// <param name="kid">Optional kid value. if not provided one will be generated</param>
     /// <returns>Serialized Jwk</returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="NotSupportedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public string PemCertificateToJwk(string pem, bool indented = true)
+    public string PemCertificateToJwk(string pem, bool indented = true, string kid = "")
     {
         const string begin = "-----BEGIN CERTIFICATE-----";
         const string end = "-----END CERTIFICATE-----";
@@ -65,7 +66,10 @@ public class PemToolkit : IPemToolkit
 
             jwk.X5c.Add(Convert.ToBase64String(cert.RawData));
 
-            jwk.Kid ??= GenerateKid(jwk);
+            if(!string.IsNullOrWhiteSpace(kid))
+                jwk.Kid = kid;
+            else
+                jwk.Kid ??= GenerateKid(jwk);
 
             return SerializeJwk(jwk, indented);
         }
@@ -78,17 +82,18 @@ public class PemToolkit : IPemToolkit
             throw new InvalidOperationException("Invalid PEM certificate format.", ex);
         }
     }
-    
+
     /// <summary>
     /// Convert RSA PEM (public or private, PKCS#1 or PKCS#8) to a serialized JWK JSON string.
     /// </summary>
     /// <param name="pem">PEM Source</param>
     /// <param name="indented">Return serialized Jwk indented. Defaults to true</param>
     /// <param name="publicOnly">Include only public parameters in the JWK. Defaults to false</param>
+    /// <param name="kid">Optional kid value. if not provided one will be generated</param>
     /// <returns>Serialized Jwk</returns>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
-    public string PemRsaToJwk(string pem, bool indented = true, bool publicOnly = false)
+    public string PemRsaToJwk(string pem, bool indented = true, bool publicOnly = false, string kid = "")
     {
         if (string.IsNullOrWhiteSpace(pem))
             throw new ArgumentException("Input PEM is empty.", nameof(pem));
@@ -110,7 +115,11 @@ public class PemToolkit : IPemToolkit
 
             var rsaKey = new RsaSecurityKey(rsa);
             var jwk = JsonWebKeyConverter.ConvertFromRSASecurityKey(rsaKey);
-            jwk.Kid ??= GenerateKid(jwk);
+            
+            if(!string.IsNullOrWhiteSpace(kid))
+                jwk.Kid = kid;
+            else
+                jwk.Kid ??= GenerateKid(jwk);
 
             if (publicOnly)
                 StripPrivateRsa(jwk);

@@ -21,7 +21,11 @@ namespace Without.Systems.PemToolkit
             [OSParameter(
                 DataType = OSDataType.Boolean,
                 Description = "Return serialized Jwk indented. Defaults to true")]
-            bool indented = true);
+            bool indented = true,
+            [OSParameter(
+                DataType = OSDataType.Text,
+                Description = "Optional Key ID (kid) to include in the JWK")]
+            string kid = "");
 
         [OSAction(
             Description = "Convert an RSA private or public key PEM to a serialized JWK JSON string.",
@@ -40,6 +44,10 @@ namespace Without.Systems.PemToolkit
             [OSParameter(
                 DataType = OSDataType.Boolean,
                 Description = "Include only public parameters in the JWK. Defaults to false")]
-            bool publicOnly = false);
+            bool publicOnly = false,
+            [OSParameter(
+                DataType = OSDataType.Text,
+                Description = "Optional Key ID (kid) to include in the JWK")]
+            string kid = "");
     }
 }
